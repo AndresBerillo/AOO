@@ -132,7 +132,6 @@ classDiagram
     class TarjetaCredito {
         +numero: str
         +fecha_exp: str
-        +__init__(numero: str, fecha_exp: str)
         +procesar_pago(monto: float) bool
         +verificar_fondos(monto: float) bool
     }
@@ -147,7 +146,6 @@ classDiagram
     class Transaccion {
         +metodo_pago: MetodoPago
         +fecha: datetime
-        +__init__(metodo_pago: MetodoPago)
         +ejecutar_pago(monto: float) bool
     }
 
