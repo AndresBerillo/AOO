@@ -120,6 +120,95 @@ class Transaccion:
         return self.metodo_pago.procesar_pago(monto)
 ```
 
+### Diagrama de clases
+
+```mermaid
+classDiagram
+    class MetodoPago {
+        <<abstract>>
+        +procesar_pago(monto: float) bool
+        +verificar_fondos(monto: float) bool
+    }
+
+    class TarjetaCredito {
+        -numero: str
+        -fecha_exp: str
+        +procesar_pago(monto: float) bool
+        +verificar_fondos(monto: float) bool
+    }
+
+    class PayPal {
+        -email: str
+        +procesar_pago(monto: float) bool
+        +verificar_fondos(monto: float) bool
+    }
+
+    class Transaccion {
+        -metodo_pago: MetodoPago
+        -fecha: datetime
+        +ejecutar_pago(monto: float) bool
+    }
+
+    MetodoPago <|-- TarjetaCredito
+    MetodoPago <|-- PayPal
+    Transaccion --> MetodoPago
+```
+
+#### Flujo de datos
+
+```mermaid
+flowchart TD
+    %% Definición de entidades y procesos
+    usuario[Usuario] -->|Inicia transacción| procesoTransaccion[Ejecutar Transacción]
+    procesoTransaccion -->|Selecciona método de pago| metodoPago[MetodoPago]
+    tarjetaCredito[TarjetaCredito] -->|Verifica fondos| verificarFondos[Verificar Fondos]
+    paypal[PayPal] -->|Verifica fondos| verificarFondos[Verificar Fondos]
+    verificarFondos -->|Fondos disponibles?| resultadoFondos{Fondos disponibles?}
+
+    %% Procesos con condiciones
+    resultadoFondos -- Sí --> procesoPago[Procesar Pago]
+    resultadoFondos -- No --> mensajeError[Mostrar error: Fondos insuficientes]
+
+    %% Resultado final
+    procesoPago -->|Transacción exitosa| mensajeExito[Mostrar mensaje de éxito]
+    mensajeError --> usuario
+    mensajeExito --> usuario
+
+    %% Métodos de pago específicos
+    metodoPago --> tarjetaCredito[TarjetaCredito]
+    metodoPago --> paypal[PayPal]
+```
+
+#### Diagrama de secuencia
+
+```mermaid
+sequenceDiagram
+    participant Usuario
+    participant Transaccion
+    participant MetodoPago
+    participant TarjetaCredito
+    participant PayPal
+
+    Usuario ->> Transaccion: ejecutar_pago(monto)
+    Transaccion ->> MetodoPago: procesar_pago(monto)
+
+    alt Metodo de Pago: Tarjeta de Crédito
+        MetodoPago ->> TarjetaCredito: verificar_fondos(monto)
+        TarjetaCredito -->> MetodoPago: fondos disponibles (True/False)
+        MetodoPago ->> TarjetaCredito: procesar_pago(monto)
+        TarjetaCredito -->> MetodoPago: resultado del pago (True/False)
+        MetodoPago -->> Transaccion: resultado del pago
+    else Metodo de Pago: PayPal
+        MetodoPago ->> PayPal: verificar_fondos(monto)
+        PayPal -->> MetodoPago: fondos disponibles (True/False)
+        MetodoPago ->> PayPal: procesar_pago(monto)
+        PayPal -->> MetodoPago: resultado del pago (True/False)
+        MetodoPago -->> Transaccion: resultado del pago
+    end
+
+    Transaccion -->> Usuario: resultado de la transacción (True/False)
+```
+
 ### 2.3 Pruebas Unitarias
 
 ```python
