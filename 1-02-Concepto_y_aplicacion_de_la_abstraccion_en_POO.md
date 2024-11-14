@@ -344,6 +344,124 @@ class DVD(MaterialBiblioteca):
         return datetime.now() + timedelta(days=3)
 ```
 
+## 3.1 Tarea
+### Hacer diagrama de clases
+```mermaid
+classDiagram
+    class MaterialBiblioteca {
+        -codigo: str
+        -titulo: str
+        -prestado: bool
+        -fecha_devolucion: Optional~datetime~
+        +prestar() bool
+        +calcular_fecha_devolucion() datetime
+    }
+    class Libro {
+        +calcular_fecha_devolucion() datetime
+    }
+    class Revista {
+        +calcular_fecha_devolucion() datetime
+    }
+    class DVD {
+        +calcular_fecha_devolucion() datetime
+    }
+
+    MaterialBiblioteca <|-- Libro
+    MaterialBiblioteca <|-- Revista
+    MaterialBiblioteca <|-- DVD
+
+```
+### Hacer Diagrama de secuencia
+```mermaid
+sequenceDiagram
+    participant Usuario
+    participant MaterialBiblioteca
+    participant Libro
+    participant Revista
+    participant DVD
+    participant FechaDevolucion
+
+    Usuario->>MaterialBiblioteca: prestar()
+    alt Material no prestado
+        MaterialBiblioteca->>MaterialBiblioteca: prestado = True
+        alt Es un Libro
+            MaterialBiblioteca->>Libro: calcular_fecha_devolucion()
+            Libro->>FechaDevolucion: datetime.now() + 14 días
+            MaterialBiblioteca-->>Usuario: True
+        else Es una Revista
+            MaterialBiblioteca->>Revista: calcular_fecha_devolucion()
+            Revista->>FechaDevolucion: datetime.now() + 7 días
+            MaterialBiblioteca-->>Usuario: True
+        else Es un DVD
+            MaterialBiblioteca->>DVD: calcular_fecha_devolucion()
+            DVD->>FechaDevolucion: datetime.now() + 3 días
+            MaterialBiblioteca-->>Usuario: True
+        end
+    else Material ya prestado
+        MaterialBiblioteca-->>Usuario: False
+    end
+```
+### Hacer pruebas unitarias
+```python
+from abc import ABC, abstractmethod
+from typing import List, Optional
+from datetime import datetime, timedelta
+import unittest
+
+class MaterialBiblioteca(ABC):
+    def __init__(self, codigo: str, titulo: str):
+        self.codigo = codigo
+        self.titulo = titulo
+        self.prestado = False
+        self.fecha_devolucion: Optional[datetime] = None
+    
+    @abstractmethod
+    def calcular_fecha_devolucion(self) -> datetime:
+        pass
+    
+    def prestar(self) -> bool:
+        if not self.prestado:
+            self.prestado = False
+            self.fecha_devolucion = self.calcular_fecha_devolucion()
+            print(f"{type(self).__name__} prestado. Fecha de devolución: {self.fecha_devolucion}")
+            return True
+        else:
+            print(f"{type(self).__name__} ya prestado.")
+            return False
+
+class Libro(MaterialBiblioteca):
+    def calcular_fecha_devolucion(self) -> datetime:
+        return datetime.now() + timedelta(days=14)
+
+class Revista(MaterialBiblioteca):
+    def calcular_fecha_devolucion(self) -> datetime:
+        return datetime.now() + timedelta(days=7)
+
+class DVD(MaterialBiblioteca):
+    def calcular_fecha_devolucion(self) -> datetime:
+        return datetime.now() + timedelta(days=3)
+
+class TestBiblioteca(unittest.TestCase):
+    def setUp(self):
+        self.libro =Libro("1234", "El principito")
+        self.revista= Revista("5678", "National Geographic")
+        self.dvd= DVD("9012", "Piratas del Caribe")
+
+    def test_libro(self):
+        self.libro.prestar()
+        self.assertTrue(True)
+
+    def test_revista(self):
+        self.revista.prestar()
+        self.assertTrue(True)
+    
+    def test_dvd(self):
+        self.dvd.prestar()
+        self.assertTrue(True)
+
+if __name__ == '__main__':
+    unittest.main(exit=False)
+```
 ## 4. Mejores Prácticas
 
 1. **Diseño**:
