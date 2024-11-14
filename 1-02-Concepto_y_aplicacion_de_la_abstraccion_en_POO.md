@@ -231,6 +231,81 @@ if __name__ == '__main__':
     unittest.main()
 ```
 
+### Ejercicio: Tests con estos valores
+- Test 1: Pago con tarjeta de crédito de $100
+- Test 2: Pago con PayPal de $50
+- Test 3: Pago con tarjeta de crédito de $200
+- Test 4: Hacer un listado de transacciones mostrando el método de pago el monto y la fecha
+
+
+```python
+from datetime import datetime
+from typing import List
+import unittest
+import time
+
+class MetodoPago:
+    def procesar_pago(self, monto: float) -> bool:
+        pass
+
+class TarjetaCredito(MetodoPago):
+    def __init__(self, numero_tarjeta: str, fecha_expiracion: str):
+        self.numero_tarjeta = numero_tarjeta
+        self.fecha_expiracion = fecha_expiracion
+
+    def procesar_pago(self, monto: float) -> bool:
+        print(f"Procesando pago de {monto} con tarjeta de crédito.")
+        return True
+
+class PayPal(MetodoPago):
+    def __init__(self, email: str):
+        self.email = email
+
+    def procesar_pago(self, monto: float) -> bool:
+        print(f"Procesando pago de {monto} con PayPal.")
+        return True
+
+class Transaccion:
+    transacciones = []
+
+    def __init__(self, metodo_pago: MetodoPago):
+        self.metodo_pago = metodo_pago
+        self.fecha = datetime.now()
+
+    def ejecutar_pago(self, monto: float) -> bool:
+        resultado = self.metodo_pago.procesar_pago(monto)
+        if resultado:
+            Transaccion.transacciones.append(f"Fecha: {self.fecha}, Método de pago: {type(self.metodo_pago).__name__}, Monto: {monto}")
+        return resultado
+    
+    @classmethod
+    def listar_transacciones(cls) -> List[str]:
+        return cls.transacciones
+
+class TestMetodosPago(unittest.TestCase):
+    def setUp(self):
+        self.tarjeta = TarjetaCredito("1234-5678-9012-3456", "12/25")
+        self.paypal = PayPal("usuario@email.com")
+        time.sleep(5)
+    
+    def test_pago_tarjeta1(self):
+        transaccion = Transaccion(self.tarjeta)
+        self.assertTrue(transaccion.ejecutar_pago(100.0))
+    
+    def test_pago_paypal(self):
+        transaccion = Transaccion(self.paypal)
+        self.assertTrue(transaccion.ejecutar_pago(50.0))
+    
+    def test_pago_tarjeta2(self):
+        transaccion = Transaccion(self.tarjeta)
+        self.assertTrue(transaccion.ejecutar_pago(200.0))
+
+if __name__ == '__main__':
+    unittest.main(exit=False)
+    for transaccion in Transaccion.listar_transacciones():
+        print(transaccion)
+```
+
 ## 3. Ejercicio Práctico: Sistema de Biblioteca
 
 ```python
